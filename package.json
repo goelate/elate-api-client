@@ -1,0 +1,26 @@
+{
+  "name": "@elate/api-client",
+  "version": "0.1.0",
+  "description": "TypeScript client for the Elate API.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "author": "Elate",
+  "homepage": "https://goelate.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elate/api-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/elate/api-client/issues"
+  },
+  "keywords": [
+    "elate",
+    "api-client",
+    "sdk",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+}
