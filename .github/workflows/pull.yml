@@ -25,6 +25,7 @@ jobs:
         with:
           node-version: 22
           cache: yarn
+      - run: corepack enable
       - run: yarn install --frozen-lockfile
       - name: Generate OpenAPI types
         run: yarn generate
