@@ -4,7 +4,7 @@
   "description": "TypeScript client for the Elate API.",
   "license": "MIT",
   "type": "module",
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "yarn@4.17.0",
   "sideEffects": false,
   "author": "Elate",
   "homepage": "https://goelate.com",
