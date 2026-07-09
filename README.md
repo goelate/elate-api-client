@@ -5,13 +5,13 @@ TypeScript client for the Elate API.
 ## Installation
 
 ```sh
-yarn add @goelate/api-client
+yarn add @goelate/elate-api-client
 ```
 
 ## Quickstart
 
 ```ts
-import { ElateClient } from "@goelate/api-client";
+import { ElateClient } from "@goelate/elate-api-client";
 
 const apiKey = process.env.ELATE_API_KEY;
 if (!apiKey) {
@@ -88,7 +88,7 @@ Most resources support `list`, `create`, `get`, `update`, and `delete` methods.
 Non-2xx responses throw `ElateApiError`.
 
 ```ts
-import { ElateApiError } from "@goelate/api-client";
+import { ElateApiError } from "@goelate/elate-api-client";
 
 try {
   await elate.users.list({ page: 0, limit: 25 });
@@ -112,7 +112,7 @@ const pdf = await elate.reports.getPdf(123);
 Request and response types are exported from the package and generated from the public OpenAPI document.
 
 ```ts
-import type { ObjectiveCollectionResponse } from "@goelate/api-client";
+import type { ObjectiveCollectionResponse } from "@goelate/elate-api-client";
 ```
 
 ## Development

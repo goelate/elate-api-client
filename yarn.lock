@@ -475,9 +475,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@goelate/api-client@workspace:.":
+"@goelate/elate-api-client@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@goelate/api-client@workspace:."
+  resolution: "@goelate/elate-api-client@workspace:."
   dependencies:
     "@eslint/js": "npm:^9.30.1"
     "@types/node": "npm:^24.0.10"

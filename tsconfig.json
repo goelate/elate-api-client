@@ -6,7 +6,7 @@
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
-      "@goelate/api-client": ["./src/index.ts"]
+      "@goelate/elate-api-client": ["./src/index.ts"]
     },
     "strict": true,
     "noEmit": true,

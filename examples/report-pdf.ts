@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { ElateClient } from "@goelate/api-client";
+import { ElateClient } from "@goelate/elate-api-client";
 
 const apiKey = process.env.ELATE_API_KEY;
 if (!apiKey) {
