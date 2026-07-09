@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Security updates are provided for the latest released version of `@goelate/api-client`. If a security fix is released, users should upgrade to the newest available version as soon as practical.
+Security updates are provided for the latest released version of `@goelate/elate-api-client`. If a security fix is released, users should upgrade to the newest available version as soon as practical.
 
 ## Reporting a Vulnerability
 

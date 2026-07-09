@@ -1,5 +1,5 @@
 {
-  "name": "@goelate/api-client",
+  "name": "@goelate/elate-api-client",
   "version": "0.1.0",
   "description": "TypeScript client for the Elate API.",
   "license": "MIT",
