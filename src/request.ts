@@ -56,7 +56,7 @@ export class ElateRequestClient {
     this.baseUrl = config.baseUrl.replace(/\/+$/, "");
     this.apiKey = config.apiKey;
     this.userAgent =
-      config.userAgent || `${packageJson.name}/${packageJson.version}`;
+      config.userAgent ?? `${packageJson.name}/${packageJson.version}`;
     this.headers = config.headers;
     this.timeoutMs = config.timeoutMs ?? 30_000;
     this.maxRetries = config.maxRetries ?? 2;
