@@ -6,6 +6,7 @@ TypeScript client for the Elate API.
 
 ```sh
 yarn add @goelate/elate-api-client
+# or: npm install @goelate/elate-api-client
 ```
 
 ## Quickstart
@@ -35,15 +36,18 @@ const objectives = await elate.objectives.list({
 ```ts
 const elate = new ElateClient({
   baseUrl: "https://evoke.goelate.com",
-  apiKey: "elate_api_key",
+  apiKey: process.env.ELATE_API_KEY!,
   headers: {
     "x-request-source": "my-integration",
   },
   fetch: customFetch,
+  timeoutMs: 30_000,
+  maxRetries: 2,
 });
 ```
 
 The client uses native `fetch`. Pass `fetch` when running in a custom environment or when testing.
+Use a trusted HTTPS `baseUrl`; the API key is sent as a bearer token to that URL.
 
 ## Authentication
 
@@ -98,6 +102,8 @@ try {
   }
 }
 ```
+
+Error bodies and response headers may contain sensitive API or customer data. Avoid logging them without reviewing and redacting the contents.
 
 ## PDF Reports
 

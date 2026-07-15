@@ -53,7 +53,7 @@
     "lint": "eslint .",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
     "pack:check": "yarn pack --filename /tmp/elate-api-client.tgz && publint run /tmp/elate-api-client.tgz --pack false",
-    "prepack": "yarn generate && yarn build"
+    "prepack": "yarn build"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

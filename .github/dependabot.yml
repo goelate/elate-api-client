@@ -5,7 +5,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "yarn"
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
@@ -17,7 +17,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependency upgrade"
-      - "npm"
+      - "yarn"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
