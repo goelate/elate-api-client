@@ -8,7 +8,7 @@ Security updates are provided for the latest released version of `@goelate/elate
 
 Please do not report security vulnerabilities through public GitHub issues, pull requests, or discussions.
 
-Use GitHub's private vulnerability reporting or Security Advisories feature for this repository when available. If that is not available, contact the repository maintainers privately via security@goelate.com.
+Use GitHub's private vulnerability reporting or Security Advisories feature for this repository when available. If that is not available, contact the repository maintainers privately via <security@goelate.com>.
 
 Include as much detail as possible so maintainers can understand and reproduce the issue:
 
