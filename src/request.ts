@@ -23,7 +23,7 @@ export interface ElateRequestConfig {
   baseUrl: string;
   /** API key sent as a bearer token. */
   apiKey: string;
-  /** User agent string sent with every request. Defaults to `elate-api-client/<version>`. */
+  /** User agent string sent with every request. Defaults to `<package name>/<package version>`. */
   userAgent?: string;
   /** Optional headers sent with every request. Authorization is always managed by the client. */
   headers?: HeadersInit;
