@@ -45,10 +45,11 @@ export class ElateClient {
    * Create a new ElateClient instance with the given configuration.
    *
    * @param options - Configuration options for the client
-   * @param options.baseUrl - The base URL of the Elate API (default: "https://evoke.goelate.com")
+   * @param options.baseUrl - The HTTPS base URL of the Elate API
    * @param options.apiKey - The API key for authentication (required)
-   * @param options.timeout - Request timeout in milliseconds (default: 5000)
-   * @param options.retries - Maximum number of retry attempts (default: 3)
+   * @param options.timeoutMs - Request timeout in milliseconds (default: 30000)
+   * @param options.maxRetries - Maximum number of GET retry attempts (default: 2)
+   * @param options.retryDelayMs - Base delay between retries in milliseconds (default: 100)
    */
   constructor(options: ElateClientOptions) {
     this.requestClient = new ElateRequestClient(options);
@@ -67,4 +68,3 @@ export class ElateClient {
     this.reports = new ReportsResource(request);
   }
 }
-
