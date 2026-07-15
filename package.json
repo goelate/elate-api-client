@@ -56,6 +56,7 @@
     "lint": "eslint .",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
     "pack:check": "yarn pack --filename /tmp/elate-api-client.tgz && publint run /tmp/elate-api-client.tgz --pack false",
+    "prepublishOnly": "yarn generate && git diff --exit-code -- src/generated/schema.ts",
     "prepack": "yarn build"
   },
   "devDependencies": {
