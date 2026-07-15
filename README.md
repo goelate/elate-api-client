@@ -34,13 +34,17 @@ const objectives = await elate.objectives.list({
 ## Configuration
 
 ```ts
+const apiKey = process.env.ELATE_API_KEY;
+if (!apiKey) {
+  throw new Error("ELATE_API_KEY environment variable is required");
+}
+
 const elate = new ElateClient({
   baseUrl: "https://evoke.goelate.com",
-  apiKey: process.env.ELATE_API_KEY!,
+  apiKey,
   headers: {
     "x-request-source": "my-integration",
   },
-  fetch: customFetch,
   timeoutMs: 30_000,
   maxRetries: 2,
 });
