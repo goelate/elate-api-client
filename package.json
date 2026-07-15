@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "TypeScript client for the Elate API.",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "packageManager": "yarn@4.17.0",
   "sideEffects": false,

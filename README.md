@@ -134,6 +134,24 @@ yarn build
 
 Types are generated from `https://evoke.goelate.com/api/docs/openapi.yaml`.
 
+## Publishing
+
+Releases are published from GitHub Actions when a version tag such as `v0.1.0` is pushed. The workflow verifies generated types, tests the package, checks the packed artifact, and publishes with npm provenance.
+
+Before the first release, configure the npm package's trusted publisher for this repository and the `Release Package` workflow. No long-lived npm token is required when trusted publishing is enabled.
+
+For a local package review, run:
+
+```sh
+yarn generate
+git diff --exit-code -- src/generated/schema.ts
+yarn lint
+yarn typecheck
+yarn test
+yarn build
+npm publish --dry-run --access public
+```
+
 ## License
 
 MIT
