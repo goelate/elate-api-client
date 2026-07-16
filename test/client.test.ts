@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import packageJson from "../package.json" with { type: "json" };
 import { ElateClient, ElateApiError } from "../src";
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
@@ -103,6 +104,66 @@ describe("ElateClient", () => {
     const [, init] = firstFetchCall(fetchImpl);
     const headers = init.headers as Headers;
     expect(headers.get("accept")).toBe("application/vnd.elate+json");
+  });
+
+  it("sends the package name and version as the default user agent", async () => {
+    const fetchImpl = createFetch(
+      jsonResponse({ entity: "users", results: [] }),
+    );
+    const client = new ElateClient({
+      baseUrl: "https://api.goelate.com",
+      apiKey: "test-key",
+      fetch: fetchImpl,
+      maxRetries: 0,
+    });
+
+    await client.users.list({ page: 0, limit: 25 });
+
+    const [, init] = firstFetchCall(fetchImpl);
+    expect((init.headers as Headers).get("user-agent")).toBe(
+      `${packageJson.name}/${packageJson.version}`,
+    );
+  });
+
+  it("uses a configured user agent when provided", async () => {
+    const fetchImpl = createFetch(
+      jsonResponse({ entity: "users", results: [] }),
+    );
+    const client = new ElateClient({
+      baseUrl: "https://api.goelate.com",
+      apiKey: "test-key",
+      fetch: fetchImpl,
+      userAgent: "configured-agent/1.0",
+      maxRetries: 0,
+    });
+
+    await client.users.list({ page: 0, limit: 25 });
+
+    const [, init] = firstFetchCall(fetchImpl);
+    expect((init.headers as Headers).get("user-agent")).toBe(
+      "configured-agent/1.0",
+    );
+  });
+
+  it("preserves a caller-provided user agent over the configured value", async () => {
+    const fetchImpl = createFetch(
+      jsonResponse({ entity: "users", results: [] }),
+    );
+    const client = new ElateClient({
+      baseUrl: "https://api.goelate.com",
+      apiKey: "test-key",
+      fetch: fetchImpl,
+      userAgent: "configured-agent/1.0",
+      headers: { "user-agent": "caller-agent/2.0" },
+      maxRetries: 0,
+    });
+
+    await client.users.list({ page: 0, limit: 25 });
+
+    const [, init] = firstFetchCall(fetchImpl);
+    expect((init.headers as Headers).get("user-agent")).toBe(
+      "caller-agent/2.0",
+    );
   });
 
   it("throws ElateApiError with parsed JSON body", async () => {

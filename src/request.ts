@@ -1,3 +1,4 @@
+import packageJson from "../package.json" with { type: "json" };
 import { ElateApiError } from "./errors";
 
 export type QueryValue = string | number | boolean | null | undefined;
@@ -22,6 +23,8 @@ export interface ElateRequestConfig {
   baseUrl: string;
   /** API key sent as a bearer token. */
   apiKey: string;
+  /** User agent string sent with every request. Defaults to `<package name>/<package version>`. */
+  userAgent?: string;
   /** Optional headers sent with every request. Authorization is always managed by the client. */
   headers?: HeadersInit;
   /** Optional fetch implementation for tests or custom runtimes. */
@@ -42,6 +45,7 @@ export type ElateRequestExecutor = <T>(
 export class ElateRequestClient {
   private readonly baseUrl: string;
   private readonly apiKey: string;
+  private readonly userAgent: string | undefined;
   private readonly headers: HeadersInit | undefined;
   private readonly fetchImpl: typeof fetch;
   private readonly timeoutMs: number;
@@ -51,6 +55,8 @@ export class ElateRequestClient {
   constructor(config: ElateRequestConfig) {
     this.baseUrl = config.baseUrl.replace(/\/+$/, "");
     this.apiKey = config.apiKey;
+    this.userAgent =
+      config.userAgent || `${packageJson.name}/${packageJson.version}`;
     this.headers = config.headers;
     this.timeoutMs = config.timeoutMs ?? 30_000;
     this.maxRetries = config.maxRetries ?? 2;
@@ -184,6 +190,10 @@ export class ElateRequestClient {
 
     if (body !== undefined && !headers.has("content-type")) {
       headers.set("content-type", "application/json");
+    }
+
+    if (this.userAgent && !headers.has("user-agent")) {
+      headers.set("user-agent", this.userAgent);
     }
 
     return headers;
