@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  API_SPEC_YAML: "https://integration-api.goelate.com/api/docs/openapi.yaml"
+
 jobs:
   test:
     name: Test

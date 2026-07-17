@@ -49,7 +49,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "generate": "openapi-typescript https://evoke.goelate.com/api/docs/openapi.yaml -o src/generated/schema.ts && prettier --write src/generated/schema.ts",
+    "generate": "openapi-typescript ${API_SPEC_YAML:-https://evoke.goelate.com/api/docs/openapi.yaml} -o src/generated/schema.ts && prettier --write src/generated/schema.ts",
     "build": "tsup",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
