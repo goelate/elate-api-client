@@ -59,6 +59,15 @@ export type CommentResponse = components["schemas"]["CommentResponse"];
 export type CommentCollectionResponse =
   components["schemas"]["CommentCollectionResponse"];
 
+export type Checkpoint = components["schemas"]["Checkpoint"];
+export type CheckpointCreateRequest =
+  components["schemas"]["CheckpointCreateRequest"];
+export type CheckpointUpdateRequest =
+  components["schemas"]["CheckpointUpdateRequest"];
+export type CheckpointResponse = components["schemas"]["CheckpointResponse"];
+export type CheckpointCollectionResponse =
+  components["schemas"]["CheckpointCollectionResponse"];
+
 export type Theme = components["schemas"]["Theme"];
 export type ThemeCreateRequest = components["schemas"]["ThemeCreateRequest"];
 export type ThemeUpdateRequest = components["schemas"]["ThemeUpdateRequest"];

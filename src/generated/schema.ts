@@ -160,6 +160,45 @@ export interface paths {
     patch: operations["updateComment"];
     trace?: never;
   };
+  "/api/v1/checkpoints": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List checkpoints */
+    get: operations["listCheckpoints"];
+    put?: never;
+    /** Create checkpoint */
+    post: operations["createCheckpoint"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/checkpoints/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    /** Get checkpoint */
+    get: operations["getCheckpoint"];
+    put?: never;
+    post?: never;
+    /** Delete checkpoint */
+    delete: operations["deleteCheckpoint"];
+    options?: never;
+    head?: never;
+    /** Update checkpoint */
+    patch: operations["updateCheckpoint"];
+    trace?: never;
+  };
   "/api/v1/themes": {
     parameters: {
       query?: never;
@@ -567,6 +606,27 @@ export interface components {
         pinned_by_id?: number;
       };
     };
+    Checkpoint: {
+      id: number;
+      /** Format: date */
+      date: string;
+      commentId?: number | null;
+      objectiveId?: number | null;
+      tacticId?: number | null;
+      /** @enum {string|null} */
+      status?: "bad" | "neutral" | "good" | null;
+      userId?: number | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CheckpointCreateRequest: {
+      checkpoint: components["schemas"]["CheckpointCreateAttributes"];
+    };
+    CheckpointUpdateRequest: {
+      checkpoint: components["schemas"]["CheckpointUpdateAttributes"];
+    };
     Group: {
       id: number;
       name: string;
@@ -725,6 +785,17 @@ export interface components {
       results?: components["schemas"]["Comment"][];
       metadata?: components["schemas"]["PaginationMetadata"];
     };
+    CheckpointResponse: {
+      /** @example checkpoints */
+      entity?: string;
+      results?: components["schemas"]["Checkpoint"];
+    };
+    CheckpointCollectionResponse: {
+      /** @example checkpoints */
+      entity?: string;
+      results?: components["schemas"]["Checkpoint"][];
+      metadata?: components["schemas"]["PaginationMetadata"];
+    };
     ThemeResponse: {
       /** @example themes */
       entity?: string;
@@ -860,6 +931,37 @@ export interface components {
     GoalCreateAttributes: components["schemas"]["GoalAttributes"] & {
       metric_id: components["schemas"]["metric_id"];
       end_time: components["schemas"]["end_time"];
+    };
+    /** @description Create a checkpoint for either an objective or a tactic. Provide exactly one of objective_id or tactic_id. Public API checkpoint comments accept only content and json_content; generated_text_id is not supported. */
+    CheckpointCreateAttributes: {
+      /** Format: date */
+      date: string;
+      objective_id?: number;
+      tactic_id?: number;
+      /** @enum {string} */
+      status?: "bad" | "neutral" | "good";
+      /** @description Optional public comment payload. Only content and json_content are supported; generated_text_id is not supported by the public API. */
+      comment?: {
+        content?: string;
+        json_content?: {
+          [key: string]: unknown;
+        };
+      };
+    } & (
+      | {
+          objective_id: number;
+          tactic_id?: number;
+        }
+      | {
+          objective_id?: number;
+          tactic_id: number;
+        }
+    );
+    CheckpointUpdateAttributes: {
+      /** Format: date */
+      date?: string;
+      /** @enum {string} */
+      status?: "bad" | "neutral" | "good";
     };
     TacticAttributes: {
       current_cell_reference?: string;
@@ -1722,6 +1824,208 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CommentResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorUnauthorized"];
+        };
+      };
+      403: components["responses"]["ForbiddenResponse"];
+      /** @description Validation failed */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ValidationErrors"];
+        };
+      };
+    };
+  };
+  listCheckpoints: {
+    parameters: {
+      query: {
+        start: components["parameters"]["StartDateParam"];
+        end: components["parameters"]["EndDateParam"];
+        /** @description Zero-based page number. */
+        "page[page]": components["parameters"]["PagePageParam"];
+        /** @description Number of records per page. Maximum 500. */
+        "page[limit]": components["parameters"]["PageLimitParam"];
+        /** @description Objective whose checkpoints should be listed. Provide exactly one of objective_id or tactic_id. */
+        objective_id?: number;
+        /** @description Tactic whose checkpoints should be listed. Provide exactly one of objective_id or tactic_id. */
+        tactic_id?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Checkpoints in date range */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckpointCollectionResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorUnauthorized"];
+        };
+      };
+      403: components["responses"]["ForbiddenResponse"];
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ValidationErrors"];
+        };
+      };
+    };
+  };
+  createCheckpoint: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CheckpointCreateRequest"];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckpointResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorUnauthorized"];
+        };
+      };
+      403: components["responses"]["ForbiddenResponse"];
+      /** @description Validation failed */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ValidationErrors"];
+        };
+      };
+    };
+  };
+  getCheckpoint: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Checkpoint details */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckpointResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorUnauthorized"];
+        };
+      };
+      403: components["responses"]["ForbiddenResponse"];
+    };
+  };
+  deleteCheckpoint: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Deleted */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EntityDeleteResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorUnauthorized"];
+        };
+      };
+      403: components["responses"]["ForbiddenResponse"];
+    };
+  };
+  updateCheckpoint: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CheckpointUpdateRequest"];
+      };
+    };
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckpointResponse"];
         };
       };
       /** @description Unauthorized */
