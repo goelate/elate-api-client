@@ -1,3 +1,4 @@
+import { CheckpointsResource } from "./resources/checkpoints";
 import { CommentsResource } from "./resources/comments";
 import { GoalsResource } from "./resources/goals";
 import { GroupsResource } from "./resources/groups";
@@ -26,6 +27,8 @@ export class ElateClient {
   readonly goals: GoalsResource;
   /** Comments API methods. */
   readonly comments: CommentsResource;
+  /** Checkpoints API methods. */
+  readonly checkpoints: CheckpointsResource;
   /** Themes API methods. */
   readonly themes: ThemesResource;
   /** Tactics API methods. */
@@ -60,6 +63,7 @@ export class ElateClient {
     this.metrics = new MetricsResource(request);
     this.goals = new GoalsResource(request);
     this.comments = new CommentsResource(request);
+    this.checkpoints = new CheckpointsResource(request);
     this.themes = new ThemesResource(request);
     this.tactics = new TacticsResource(request);
     this.groups = new GroupsResource(request);

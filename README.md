@@ -158,4 +158,4 @@ npm publish --dry-run --access public
 
 ## License
 
-MIT
+[MIT](LICENSE)
