@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Fix release workflow to point to correct API Spec
+
 ## 1.1.0
 
 - Add checkpoints API client
