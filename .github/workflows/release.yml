@@ -12,6 +12,9 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  API_SPEC_YAML: "https://integration-api.goelate.com/api/docs/openapi.yaml"
+
 jobs:
   publish:
     name: Verify and publish
