@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- Add checkpoints API client
+
 ## 1.0.1
 
 - Fix error in release workflow
