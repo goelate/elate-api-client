@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- Export `ListCheckpointsParams` type in package
+
 ## 1.1.1
 
 - Fix release workflow to point to correct API Spec
