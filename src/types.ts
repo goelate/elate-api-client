@@ -35,6 +35,7 @@ export type ObjectiveUpdateRequest =
 export type ObjectiveResponse = components["schemas"]["ObjectiveResponse"];
 export type ObjectiveCollectionResponse =
   components["schemas"]["ObjectiveCollectionResponse"];
+export type Resolution = components["schemas"]["Resolution"];
 
 export type Metric = components["schemas"]["Metric"];
 export type MetricCreateRequest = components["schemas"]["MetricCreateRequest"];

@@ -437,6 +437,9 @@ export interface components {
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
+      /** Format: date-time */
+      completedAt: string | null;
+      resolution: components["schemas"]["Resolution"] | null;
     };
     ObjectiveCreateRequest: {
       objective: components["schemas"]["ObjectiveCreateAttributes"];
@@ -553,6 +556,9 @@ export interface components {
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
+      /** Format: date-time */
+      completedAt: string | null;
+      resolution: components["schemas"]["Resolution"] | null;
     };
     TacticCreateRequest: {
       owner_id?: number;
@@ -560,6 +566,11 @@ export interface components {
     };
     TacticUpdateRequest: {
       tactic: components["schemas"]["TacticAttributes"];
+    };
+    Resolution: {
+      wasSuccess: boolean | null;
+      scale: number | null;
+      description: string | null;
     };
     Comment: {
       id: number;
