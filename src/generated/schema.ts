@@ -413,10 +413,113 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/.well-known/oauth-authorization-server": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** OAuth authorization-server discovery */
+    get: operations["oauthAuthorizationServerMetadata"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/.well-known/oauth-protected-resource": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** OAuth protected-resource discovery */
+    get: operations["oauthProtectedResourceMetadata"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/.well-known/oauth-protected-resource/api/v1": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Public API protected-resource discovery */
+    get: operations["oauthProtectedResourceMetadataApiV1"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/oauth/authorize": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** OAuth authorization with public S256 PKCE */
+    get: operations["oauthAuthorize"];
+    put?: never;
+    /** Submit public PKCE authorization consent */
+    post: operations["submitOauthAuthorization"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/oauth/token": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** OAuth authorization-code or refresh-token exchange */
+    post: operations["oauthToken"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    OAuthAuthorizationServerMetadata: {
+      /** Format: uri */
+      issuer: string;
+      /** Format: uri */
+      authorization_endpoint: string;
+      /** Format: uri */
+      token_endpoint: string;
+      client_id_metadata_document_supported?: boolean;
+      code_challenge_methods_supported?: string[];
+      token_endpoint_auth_methods_supported?: string[];
+    };
+    OAuthProtectedResourceMetadata: {
+      /** Format: uri */
+      resource: string;
+      authorization_servers: string[];
+      scopes_supported?: string[];
+    };
     Objective: {
       id: number;
       name: string;
@@ -437,6 +540,9 @@ export interface components {
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
+      /** Format: date-time */
+      completedAt: string | null;
+      resolution: components["schemas"]["Resolution"] | (never | null);
     };
     ObjectiveCreateRequest: {
       objective: components["schemas"]["ObjectiveCreateAttributes"];
@@ -553,6 +659,9 @@ export interface components {
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
+      /** Format: date-time */
+      completedAt: string | null;
+      resolution: components["schemas"]["Resolution"] | (never | null);
     };
     TacticCreateRequest: {
       owner_id?: number;
@@ -560,6 +669,11 @@ export interface components {
     };
     TacticUpdateRequest: {
       tactic: components["schemas"]["TacticAttributes"];
+    };
+    Resolution: {
+      wasSuccess: boolean | null;
+      scale: number | null;
+      description: string | null;
     };
     Comment: {
       id: number;
@@ -716,6 +830,7 @@ export interface components {
       firstName: string;
       lastName: string;
       title?: string | null;
+      apiOnly: boolean;
       activeOrganizationId: number;
       /** Format: date */
       lastLogin?: string | null;
@@ -728,7 +843,11 @@ export interface components {
       /** Format: date-time */
       updatedAt: string;
       /** @enum {string} */
-      preferredDateRange: "quarter" | "half" | "year" | "month";
+      preferredDateRange: "quarter" | "half" | "year" | "month" | "custom";
+      /** Format: date */
+      customDateRangeStart?: string | null;
+      /** Format: date */
+      customDateRangeEnd?: string | null;
       hasLoggedIn: boolean;
     };
     /** @description Creates a user in the API key organization with a default member role. */
@@ -871,10 +990,6 @@ export interface components {
         id?: number;
       };
     };
-    ErrorUnauthorized: {
-      /** @example Unauthorized */
-      message: string;
-    };
     ErrorMessage: {
       message: string;
     };
@@ -889,6 +1004,11 @@ export interface components {
       details?: {
         [key: string]: unknown;
       };
+    };
+    /** @description Public API authentication failure. The response also includes a WWW-Authenticate header. */
+    ErrorUnauthorized: {
+      /** @example Unauthorized */
+      message: string;
     };
     ObjectiveAttributes: {
       name?: string;
@@ -992,10 +1112,28 @@ export interface components {
       last_name?: string;
       title?: string;
       /** @enum {string} */
-      preferred_date_range?: "quarter" | "half" | "year" | "month";
+      preferred_date_range?: "quarter" | "half" | "year" | "month" | "custom";
+      /** Format: date */
+      custom_date_range_start?: string | null;
+      /** Format: date */
+      custom_date_range_end?: string | null;
     };
   };
   responses: {
+    /** @description Missing or invalid API credentials. */
+    UnauthorizedResponse: {
+      headers: {
+        /**
+         * @description Bearer challenge identifying the protected-resource metadata document; a scope parameter may be included when required.
+         * @example Bearer resource_metadata="https://api.example.com/.well-known/oauth-protected-resource/api/v1"
+         */
+        "WWW-Authenticate"?: string;
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorUnauthorized"];
+      };
+    };
     /** @description Forbidden */
     ForbiddenResponse: {
       headers: {
@@ -1007,6 +1145,8 @@ export interface components {
     };
   };
   parameters: {
+    OAuthClientId: string;
+    OAuthRedirectUri: string;
     StartDateParam: string;
     EndDateParam: string;
     /** @description Zero-based page number. */
@@ -1052,15 +1192,7 @@ export interface operations {
           "application/json": components["schemas"]["ObjectiveCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -1097,15 +1229,7 @@ export interface operations {
           "application/json": components["schemas"]["ObjectiveResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1138,15 +1262,7 @@ export interface operations {
           "application/json": components["schemas"]["ObjectiveResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1170,15 +1286,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1206,15 +1314,7 @@ export interface operations {
           "application/json": components["schemas"]["ObjectiveResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1252,15 +1352,7 @@ export interface operations {
           "application/json": components["schemas"]["MetricCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -1297,15 +1389,7 @@ export interface operations {
           "application/json": components["schemas"]["MetricResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1338,15 +1422,7 @@ export interface operations {
           "application/json": components["schemas"]["MetricResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1370,15 +1446,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1406,15 +1474,7 @@ export interface operations {
           "application/json": components["schemas"]["MetricResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1452,15 +1512,7 @@ export interface operations {
           "application/json": components["schemas"]["GoalCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -1497,15 +1549,7 @@ export interface operations {
           "application/json": components["schemas"]["GoalResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1538,15 +1582,7 @@ export interface operations {
           "application/json": components["schemas"]["GoalResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1570,15 +1606,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1606,15 +1634,7 @@ export interface operations {
           "application/json": components["schemas"]["GoalResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1665,15 +1685,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorMessage"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -1717,15 +1729,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorMessage"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1758,15 +1762,7 @@ export interface operations {
           "application/json": components["schemas"]["CommentResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1790,15 +1786,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1826,15 +1814,7 @@ export interface operations {
           "application/json": components["schemas"]["CommentResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1876,15 +1856,7 @@ export interface operations {
           "application/json": components["schemas"]["CheckpointCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -1919,15 +1891,7 @@ export interface operations {
           "application/json": components["schemas"]["CheckpointResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -1960,15 +1924,7 @@ export interface operations {
           "application/json": components["schemas"]["CheckpointResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -1992,15 +1948,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2028,15 +1976,7 @@ export interface operations {
           "application/json": components["schemas"]["CheckpointResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2072,15 +2012,7 @@ export interface operations {
           "application/json": components["schemas"]["ThemeCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -2115,15 +2047,7 @@ export interface operations {
           "application/json": components["schemas"]["ThemeResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2156,15 +2080,7 @@ export interface operations {
           "application/json": components["schemas"]["ThemeResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2188,15 +2104,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2224,15 +2132,7 @@ export interface operations {
           "application/json": components["schemas"]["ThemeResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2270,15 +2170,7 @@ export interface operations {
           "application/json": components["schemas"]["TacticCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -2315,15 +2207,7 @@ export interface operations {
           "application/json": components["schemas"]["TacticResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2356,15 +2240,7 @@ export interface operations {
           "application/json": components["schemas"]["TacticResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2388,15 +2264,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2424,15 +2292,7 @@ export interface operations {
           "application/json": components["schemas"]["TacticResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2468,15 +2328,7 @@ export interface operations {
           "application/json": components["schemas"]["GroupCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -2511,15 +2363,7 @@ export interface operations {
           "application/json": components["schemas"]["GroupResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2552,15 +2396,7 @@ export interface operations {
           "application/json": components["schemas"]["GroupResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2584,15 +2420,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2620,15 +2448,7 @@ export interface operations {
           "application/json": components["schemas"]["GroupResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2674,15 +2494,7 @@ export interface operations {
           "application/json": components["schemas"]["SavedViewCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -2717,15 +2529,7 @@ export interface operations {
           "application/json": components["schemas"]["SavedViewResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2761,15 +2565,7 @@ export interface operations {
           "application/json": components["schemas"]["SavedViewResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2793,15 +2589,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2829,15 +2617,7 @@ export interface operations {
           "application/json": components["schemas"]["SavedViewResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2873,15 +2653,7 @@ export interface operations {
           "application/json": components["schemas"]["UserCollectionResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Invalid request */
       422: {
@@ -2916,15 +2688,7 @@ export interface operations {
           "application/json": components["schemas"]["UserResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -2957,15 +2721,7 @@ export interface operations {
           "application/json": components["schemas"]["UserResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -2989,15 +2745,7 @@ export interface operations {
           "application/json": components["schemas"]["EntityDeleteResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
     };
   };
@@ -3025,15 +2773,7 @@ export interface operations {
           "application/json": components["schemas"]["UserResponse"];
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Validation failed */
       422: {
@@ -3066,15 +2806,7 @@ export interface operations {
           "application/pdf": string;
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorUnauthorized"];
-        };
-      };
+      401: components["responses"]["UnauthorizedResponse"];
       403: components["responses"]["ForbiddenResponse"];
       /** @description Report not found */
       404: {
@@ -3091,6 +2823,186 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["ErrorMessage"];
         };
+      };
+    };
+  };
+  oauthAuthorizationServerMetadata: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OAuth authorization-server metadata */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OAuthAuthorizationServerMetadata"];
+        };
+      };
+    };
+  };
+  oauthProtectedResourceMetadata: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Protected-resource metadata */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OAuthProtectedResourceMetadata"];
+        };
+      };
+    };
+  };
+  oauthProtectedResourceMetadataApiV1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Protected-resource metadata */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OAuthProtectedResourceMetadata"];
+        };
+      };
+    };
+  };
+  oauthAuthorize: {
+    parameters: {
+      query: {
+        client_id: components["parameters"]["OAuthClientId"];
+        redirect_uri: components["parameters"]["OAuthRedirectUri"];
+        response_type: "code";
+        code_challenge: string;
+        code_challenge_method: "S256";
+        scope: string;
+        organization_id: number;
+        resource?: string;
+        state?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Redirect to consent or client callback */
+      302: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid authorization request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  submitOauthAuthorization: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/x-www-form-urlencoded": {
+          /** @enum {string} */
+          approval: "approve" | "deny";
+          consent_token: string;
+          client_id?: string;
+          /** Format: uri */
+          redirect_uri?: string;
+          /** @enum {string} */
+          response_type?: "code";
+          code_challenge?: string;
+          /** @enum {string} */
+          code_challenge_method?: "S256";
+          scope?: string;
+          organization_id?: number;
+          state?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Redirect to client callback with authorization code */
+      302: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid authorization request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  oauthToken: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/x-www-form-urlencoded": {
+          /** @enum {string} */
+          grant_type: "authorization_code" | "refresh_token";
+          client_id: string;
+          client_secret?: string;
+          code?: string;
+          /** Format: uri */
+          redirect_uri?: string;
+          code_verifier?: string;
+          refresh_token?: string;
+          /** Format: uri */
+          resource?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Token response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description OAuth error such as invalid_grant or invalid_target */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

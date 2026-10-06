@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3
+
+- Accept `completedAt` and `resolution` responses in Objectives and Tactics APIs
+
 ## 1.1.2
 
 - Export `ListCheckpointsParams` type in package
