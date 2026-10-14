@@ -5,6 +5,7 @@ import { GroupsResource } from "./resources/groups";
 import { MetricsResource } from "./resources/metrics";
 import { ObjectivesResource } from "./resources/objectives";
 import { ReportsResource } from "./resources/reports";
+import { ResolutionsResource } from "./resources/resolutions";
 import { SavedViewsResource } from "./resources/saved-views";
 import { TacticsResource } from "./resources/tactics";
 import { ThemesResource } from "./resources/themes";
@@ -41,6 +42,8 @@ export class ElateClient {
   readonly users: UsersResource;
   /** Report export API methods. */
   readonly reports: ReportsResource;
+  /** Resolutions API methods. */
+  readonly resolutions: ResolutionsResource;
 
   private readonly requestClient: ElateRequestClient;
 
@@ -70,5 +73,6 @@ export class ElateClient {
     this.savedViews = new SavedViewsResource(request);
     this.users = new UsersResource(request);
     this.reports = new ReportsResource(request);
+    this.resolutions = new ResolutionsResource(request);
   }
 }

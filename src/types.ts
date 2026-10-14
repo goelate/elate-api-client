@@ -36,6 +36,14 @@ export type ObjectiveResponse = components["schemas"]["ObjectiveResponse"];
 export type ObjectiveCollectionResponse =
   components["schemas"]["ObjectiveCollectionResponse"];
 export type Resolution = components["schemas"]["Resolution"];
+export type ResolutionRecord = components["schemas"]["ResolutionRecord"];
+export type ResolutionCreateRequest =
+  components["schemas"]["ResolutionCreateRequest"];
+export type ResolutionUpdateRequest =
+  components["schemas"]["ResolutionUpdateRequest"];
+export type ResolutionResponse = components["schemas"]["ResolutionResponse"];
+export type ResolutionCollectionResponse =
+  components["schemas"]["ResolutionCollectionResponse"];
 
 export type Metric = components["schemas"]["Metric"];
 export type MetricCreateRequest = components["schemas"]["MetricCreateRequest"];

@@ -3,6 +3,7 @@ export { ElateApiError } from "./errors";
 export type { ElateApiErrorOptions } from "./errors";
 export type { ListCheckpointsParams } from "./resources/checkpoints";
 export type { ListCommentsParams } from "./resources/comments";
+export type { ListResolutionsParams } from "./resources/resolutions";
 export type {
   GetSavedViewParams,
   ListSavedViewsParams,
