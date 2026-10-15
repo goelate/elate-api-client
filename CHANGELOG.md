@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4
+
+- Add full CRUD support for Objective and Tactic resolutions
+
 ## 1.1.3
 
 - Accept `completedAt` and `resolution` responses in Objectives and Tactics APIs

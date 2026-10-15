@@ -199,6 +199,48 @@ export interface paths {
     patch: operations["updateCheckpoint"];
     trace?: never;
   };
+  "/api/v1/resolutions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List resolutions for an objective or tactic
+     * @description Provide exactly one of objective_id or tactic_id. Results are scoped to the authenticated organization and accessible records.
+     */
+    get: operations["listResolutions"];
+    put?: never;
+    /** Create a resolution for an objective or tactic */
+    post: operations["createResolution"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/resolutions/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    /** Get resolution */
+    get: operations["getResolution"];
+    put?: never;
+    post?: never;
+    /** Delete resolution */
+    delete: operations["deleteResolution"];
+    options?: never;
+    head?: never;
+    /** Update resolution */
+    patch: operations["updateResolution"];
+    trace?: never;
+  };
   "/api/v1/themes": {
     parameters: {
       query?: never;
@@ -671,9 +713,32 @@ export interface components {
       tactic: components["schemas"]["TacticAttributes"];
     };
     Resolution: {
+      id: number;
       wasSuccess: boolean | null;
       scale: number | null;
       description: string | null;
+    };
+    ResolutionRecord: {
+      id: number;
+      objectiveId: number | null;
+      tacticId: number | null;
+      userId: number | null;
+      wasSuccess: boolean | null;
+      scale: number | null;
+      description: string | null;
+      jsonContent: {
+        [key: string]: unknown;
+      } | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    ResolutionCreateRequest: {
+      resolution: components["schemas"]["ResolutionCreateAttributes"];
+    };
+    ResolutionUpdateRequest: {
+      resolution: components["schemas"]["ResolutionUpdateAttributes"];
     };
     Comment: {
       id: number;
@@ -915,6 +980,17 @@ export interface components {
       results?: components["schemas"]["Checkpoint"][];
       metadata?: components["schemas"]["PaginationMetadata"];
     };
+    ResolutionResponse: {
+      /** @example resolutions */
+      entity?: string;
+      results?: components["schemas"]["ResolutionRecord"];
+    };
+    ResolutionCollectionResponse: {
+      /** @example resolutions */
+      entity?: string;
+      results?: components["schemas"]["ResolutionRecord"][];
+      metadata?: components["schemas"]["PaginationMetadata"];
+    };
     ThemeResponse: {
       /** @example themes */
       entity?: string;
@@ -1082,6 +1158,32 @@ export interface components {
       date?: string;
       /** @enum {string} */
       status?: "bad" | "neutral" | "good";
+    };
+    /** @description Provide exactly one parent ID, a non-null was_success outcome, and a non-null scale rating from 1 to 5. The authenticated user is recorded as the author. */
+    ResolutionCreateAttributes: {
+      objective_id?: number;
+      tactic_id?: number;
+      was_success: boolean;
+      scale: number;
+      json_content?: {
+        [key: string]: unknown;
+      } | null;
+    } & (
+      | {
+          objective_id: number;
+          tactic_id?: number;
+        }
+      | {
+          objective_id?: number;
+          tactic_id: number;
+        }
+    );
+    ResolutionUpdateAttributes: {
+      was_success?: boolean | null;
+      scale?: number | null;
+      json_content?: {
+        [key: string]: unknown;
+      } | null;
     };
     TacticAttributes: {
       current_cell_reference?: string;
@@ -1974,6 +2076,166 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CheckpointResponse"];
+        };
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      /** @description Validation failed */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ValidationErrors"];
+        };
+      };
+    };
+  };
+  listResolutions: {
+    parameters: {
+      query: {
+        /** @description Zero-based page number. */
+        "page[page]": components["parameters"]["PagePageParam"];
+        /** @description Number of records per page. Maximum 500. */
+        "page[limit]": components["parameters"]["PageLimitParam"];
+        /** @description Objective whose resolution should be listed. Provide exactly one parent filter. */
+        objective_id?: number;
+        /** @description Tactic whose resolution should be listed. Provide exactly one parent filter. */
+        tactic_id?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Resolutions for the selected parent */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResolutionCollectionResponse"];
+        };
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ValidationErrors"];
+        };
+      };
+    };
+  };
+  createResolution: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResolutionCreateRequest"];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResolutionResponse"];
+        };
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      /** @description Validation failed */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ValidationErrors"];
+        };
+      };
+    };
+  };
+  getResolution: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Resolution details */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResolutionResponse"];
+        };
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+    };
+  };
+  deleteResolution: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Deleted */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EntityDeleteResponse"];
+        };
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+    };
+  };
+  updateResolution: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResolutionUpdateRequest"];
+      };
+    };
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResolutionResponse"];
         };
       };
       401: components["responses"]["UnauthorizedResponse"];

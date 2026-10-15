@@ -63,6 +63,60 @@ describe("ElateClient", () => {
     expect(headers.get("accept")).toBe("application/json");
   });
 
+  it("lists, reads, creates, updates, and deletes resolutions", async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ entity: "resolutions", results: [] }),
+    ) as unknown as typeof fetch;
+    const client = new ElateClient({
+      baseUrl: "https://api.goelate.com",
+      apiKey: "test-key",
+      fetch: fetchImpl,
+      maxRetries: 0,
+    });
+
+    await client.resolutions.list({ objectiveId: 12, page: 0, limit: 5 });
+    await client.resolutions.get(19);
+    await client.resolutions.create({
+      resolution: {
+        objective_id: 12,
+        was_success: true,
+        scale: 4,
+        json_content: { type: "doc", content: [] },
+      },
+    });
+    await client.resolutions.update(19, {
+      resolution: { was_success: false, json_content: { type: "doc", content: [] } },
+    });
+    await client.resolutions.delete(19);
+
+    const calls = vi.mocked(fetchImpl).mock.calls as [string, RequestInit][];
+    expect(calls.map(([url, init]) => [url, init.method])).toEqual([
+      [
+        "https://api.goelate.com/api/v1/resolutions?objective_id=12&page%5Bpage%5D=0&page%5Blimit%5D=5",
+        "GET",
+      ],
+      ["https://api.goelate.com/api/v1/resolutions/19", "GET"],
+      ["https://api.goelate.com/api/v1/resolutions", "POST"],
+      ["https://api.goelate.com/api/v1/resolutions/19", "PATCH"],
+      ["https://api.goelate.com/api/v1/resolutions/19", "DELETE"],
+    ]);
+    expect(calls[2]?.[1].body).toBe(
+      JSON.stringify({
+        resolution: {
+          objective_id: 12,
+          was_success: true,
+          scale: 4,
+          json_content: { type: "doc", content: [] },
+        },
+      }),
+    );
+    expect(calls[3]?.[1].body).toBe(
+      JSON.stringify({
+        resolution: { was_success: false, json_content: { type: "doc", content: [] } },
+      }),
+    );
+  });
+
   it("serializes JSON request bodies", async () => {
     const fetchImpl = createFetch(
       jsonResponse(

@@ -4,6 +4,7 @@ import type { Objective, Resolution, Tactic } from "../src";
 describe("objective and tactic response types", () => {
   it("models completion timestamps and nullable resolution details", () => {
     const resolution: Resolution = {
+      id: 3,
       wasSuccess: true,
       scale: 4,
       description: "Completed",

@@ -29,6 +29,12 @@ const objectives = await elate.objectives.list({
   page: 0,
   limit: 25,
 });
+
+const resolutions = await elate.resolutions.list({
+  objectiveId: 123,
+  page: 0,
+  limit: 25,
+});
 ```
 
 ## Configuration
@@ -82,6 +88,7 @@ The client exposes these resource groups:
 - `metrics`
 - `goals`
 - `comments`
+- `resolutions`
 - `themes`
 - `tactics`
 - `groups`
@@ -90,6 +97,8 @@ The client exposes these resource groups:
 - `reports`
 
 Most resources support `list`, `create`, `get`, `update`, and `delete` methods.
+Resolution listing requires exactly one of `objectiveId` or `tacticId`; its
+create and update methods use the public API's `resolution` request envelope.
 
 ## Error Handling
 
