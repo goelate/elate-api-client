@@ -94,11 +94,7 @@ export class PaginatedCrudResource<
   TListParams extends Partial<PaginationParams> = PaginationParams,
 > extends CrudResourceBase<TResponse, TCreateRequest, TUpdateRequest> {
   list(params: TListParams): Promise<TCollection> {
-    return this.request<TCollection>({
-      method: "GET",
-      path: this.path,
-      query: paginationQuery(params),
-    });
+    return listPaginated<TCollection>(this.request, this.path, params);
   }
 }
 
@@ -128,6 +124,19 @@ export function createPaginatedResource<
       super(request, path);
     }
   };
+}
+
+/** Shared list implementation for fixed and nested paginated resources. */
+export function listPaginated<TCollection>(
+  request: ElateRequestExecutor,
+  path: string,
+  params: Partial<PaginationParams>,
+): Promise<TCollection> {
+  return request<TCollection>({
+    method: "GET",
+    path,
+    query: paginationQuery(params),
+  });
 }
 
 /** Converts SDK pagination fields to the bracketed query names expected by the API. */

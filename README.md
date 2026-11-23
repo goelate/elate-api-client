@@ -67,6 +67,22 @@ The client sends your API key as a bearer token:
 Authorization: Bearer <apiKey>
 ```
 
+## Objective, metric, and tactic owners
+
+`elate.owners` exposes `list`, `add`, and `remove` for `objectives`, `metrics`,
+and `tactics`. Use the response's `userId`, not its relationship `id`, when
+removing an owner. To reassign ownership without leaving a
+record ownerless, add the incoming owner before removing the outgoing owner:
+
+```ts
+await elate.owners.list("objectives", 123, { page: 0, limit: 25 });
+await elate.owners.add("objectives", 123, 42);
+await elate.owners.remove("objectives", 123, 17);
+```
+
+The two writes are independent. Adding an existing owner succeeds without
+creating a duplicate; removing a missing owner returns a `404` API error.
+
 ## Pagination
 
 List methods accept friendly pagination fields and serialize them to the API's bracketed query parameters.

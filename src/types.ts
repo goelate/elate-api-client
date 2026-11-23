@@ -27,6 +27,12 @@ export interface SortParams {
 }
 
 /** Generated model and payload aliases exported as stable package types. */
+export type Owner = components["schemas"]["Owner"];
+export type OwnerCreateRequest = components["schemas"]["OwnerCreateRequest"];
+export type OwnerResponse = components["schemas"]["OwnerResponse"];
+export type OwnerCollectionResponse =
+  components["schemas"]["OwnerCollectionResponse"];
+
 export type Objective = components["schemas"]["Objective"];
 export type ObjectiveCreateRequest =
   components["schemas"]["ObjectiveCreateRequest"];

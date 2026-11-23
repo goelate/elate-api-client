@@ -30,6 +30,81 @@ describe("ElateClient", () => {
     vi.unstubAllGlobals();
   });
 
+  it.each(["objectives", "metrics", "tactics"] as const)(
+    "manages owners through the %s relationship endpoints",
+    async (resource) => {
+      const parentIdKey = {
+        objectives: "objectiveId",
+        metrics: "metricId",
+        tactics: "tacticId",
+      }[resource];
+      const owner = {
+        id: 7,
+        userId: 42,
+        [parentIdKey]: 123,
+        createdAt: "2026-01-01T00:00:00Z",
+        updatedAt: "2026-01-01T00:00:00Z",
+      };
+      const entity = `${resource.slice(0, -1)}_owners`;
+      const list = {
+        entity,
+        results: [owner],
+        metadata: { page: 0, limit: 25 },
+      };
+      const single = { entity, results: owner };
+      const fetch = vi
+        .fn<typeof globalThis.fetch>()
+        .mockResolvedValueOnce(jsonResponse(list))
+        .mockResolvedValueOnce(jsonResponse(single, { status: 201 }))
+        .mockResolvedValueOnce(jsonResponse(single))
+        .mockResolvedValueOnce(new Response(null, { status: 204 }))
+        .mockResolvedValueOnce(new Response(null, { status: 404 }));
+      const client = new ElateClient({
+        baseUrl: "https://api.goelate.com",
+        apiKey: "test-key",
+        fetch,
+      });
+      const endpoint = `https://api.goelate.com/api/v1/${resource}/123/owners`;
+
+      await expect(
+        client.owners.list(resource, 123, { page: 0, limit: 25 }),
+      ).resolves.toEqual(list);
+      await expect(client.owners.add(resource, 123, 42)).resolves.toEqual(
+        single,
+      );
+      await expect(client.owners.add(resource, 123, 42)).resolves.toEqual(
+        single,
+      );
+      await expect(
+        client.owners.remove(resource, 123, 42),
+      ).resolves.toBeUndefined();
+      await expect(
+        client.owners.remove(resource, 123, 42),
+      ).rejects.toMatchObject({
+        status: 404,
+      });
+
+      expect(fetch).toHaveBeenNthCalledWith(
+        1,
+        `${endpoint}?page%5Bpage%5D=0&page%5Blimit%5D=25`,
+        expect.objectContaining({ method: "GET" }),
+      );
+      expect(fetch).toHaveBeenNthCalledWith(
+        2,
+        endpoint,
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ owner: { user_id: 42 } }),
+        }),
+      );
+      expect(fetch).toHaveBeenNthCalledWith(
+        4,
+        `${endpoint}/42`,
+        expect.objectContaining({ method: "DELETE" }),
+      );
+    },
+  );
+
   it("sends auth headers and bracketed pagination query parameters", async () => {
     const fetchImpl = createFetch(
       jsonResponse({
@@ -85,7 +160,10 @@ describe("ElateClient", () => {
       },
     });
     await client.resolutions.update(19, {
-      resolution: { was_success: false, json_content: { type: "doc", content: [] } },
+      resolution: {
+        was_success: false,
+        json_content: { type: "doc", content: [] },
+      },
     });
     await client.resolutions.delete(19);
 
@@ -112,7 +190,10 @@ describe("ElateClient", () => {
     );
     expect(calls[3]?.[1].body).toBe(
       JSON.stringify({
-        resolution: { was_success: false, json_content: { type: "doc", content: [] } },
+        resolution: {
+          was_success: false,
+          json_content: { type: "doc", content: [] },
+        },
       }),
     );
   });
