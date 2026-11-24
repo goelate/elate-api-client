@@ -4,6 +4,7 @@ import { GoalsResource } from "./resources/goals";
 import { GroupsResource } from "./resources/groups";
 import { MetricsResource } from "./resources/metrics";
 import { ObjectivesResource } from "./resources/objectives";
+import { OwnersResource } from "./resources/owners";
 import { ReportsResource } from "./resources/reports";
 import { ResolutionsResource } from "./resources/resolutions";
 import { SavedViewsResource } from "./resources/saved-views";
@@ -22,6 +23,8 @@ import type { ElateClientOptions } from "./types";
 export class ElateClient {
   /** Objectives API methods. */
   readonly objectives: ObjectivesResource;
+  /** Owner relationship API methods for objectives, metrics, and tactics. */
+  readonly owners: OwnersResource;
   /** Metrics API methods. */
   readonly metrics: MetricsResource;
   /** Goals API methods. */
@@ -63,6 +66,7 @@ export class ElateClient {
     const request = this.requestClient.request.bind(this.requestClient);
 
     this.objectives = new ObjectivesResource(request);
+    this.owners = new OwnersResource(request);
     this.metrics = new MetricsResource(request);
     this.goals = new GoalsResource(request);
     this.comments = new CommentsResource(request);

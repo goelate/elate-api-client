@@ -43,6 +43,43 @@ export interface paths {
     patch: operations["updateObjective"];
     trace?: never;
   };
+  "/api/v1/objectives/{id}/owners": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    /** List objective owners */
+    get: operations["listObjectiveOwners"];
+    put?: never;
+    /** Add an objective owner */
+    post: operations["addObjectiveOwner"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/objectives/{id}/owners/{user_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove an objective owner */
+    delete: operations["removeObjectiveOwner"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/metrics": {
     parameters: {
       query?: never;
@@ -317,6 +354,80 @@ export interface paths {
     head?: never;
     /** Update tactic */
     patch: operations["updateTactic"];
+    trace?: never;
+  };
+  "/api/v1/metrics/{id}/owners": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    /** List metric owners */
+    get: operations["listMetricOwners"];
+    put?: never;
+    /** Add a metric owner */
+    post: operations["addMetricOwner"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/metrics/{id}/owners/{user_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove a metric owner */
+    delete: operations["removeMetricOwner"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/tactics/{id}/owners": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    /** List tactic owners */
+    get: operations["listTacticOwners"];
+    put?: never;
+    /** Add a tactic owner */
+    post: operations["addTacticOwner"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/tactics/{id}/owners/{user_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove a tactic owner */
+    delete: operations["removeTacticOwner"];
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/v1/groups": {
@@ -1046,6 +1157,44 @@ export interface components {
       results?: components["schemas"]["User"][];
       metadata?: components["schemas"]["PaginationMetadata"];
     };
+    OwnerCreateRequest: {
+      owner: {
+        user_id: number;
+      };
+    };
+    Owner:
+      | components["schemas"]["ObjectiveOwner"]
+      | components["schemas"]["MetricOwner"]
+      | components["schemas"]["TacticOwner"];
+    OwnerRelationship: {
+      /** @description Owner relationship ID */
+      id: number;
+      userId: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    ObjectiveOwner: components["schemas"]["OwnerRelationship"] & {
+      objectiveId: number;
+    };
+    MetricOwner: components["schemas"]["OwnerRelationship"] & {
+      metricId: number;
+    };
+    TacticOwner: components["schemas"]["OwnerRelationship"] & {
+      tacticId: number;
+    };
+    OwnerResponse: {
+      /** @enum {string} */
+      entity: "objective_owners" | "metric_owners" | "tactic_owners";
+      results: components["schemas"]["Owner"];
+    };
+    OwnerCollectionResponse: {
+      /** @enum {string} */
+      entity: "objective_owners" | "metric_owners" | "tactic_owners";
+      results: components["schemas"]["Owner"][];
+      metadata: components["schemas"]["PaginationMetadata"];
+    };
     PaginationMetadata: {
       /** @example page%5Blimit%5D=25&page%5Bpage%5D=1 */
       next?: string | null;
@@ -1222,6 +1371,58 @@ export interface components {
     };
   };
   responses: {
+    /** @description Visible owners in the token organization */
+    OwnerListResponse: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["OwnerCollectionResponse"];
+      };
+    };
+    /** @description User is already an owner */
+    OwnerAlreadyPresent: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["OwnerResponse"];
+      };
+    };
+    /** @description Owner added without changing other owners */
+    OwnerCreated: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["OwnerResponse"];
+      };
+    };
+    /** @description Parent, eligible organization member, or relationship not found */
+    OwnerNotFound: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content?: never;
+    };
+    /** @description Invalid owner payload */
+    InvalidOwnerPayload: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorMessage"];
+      };
+    };
+    /** @description Validation failed */
+    OwnerValidationError: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ValidationErrors"];
+      };
+    };
     /** @description Missing or invalid API credentials. */
     UnauthorizedResponse: {
       headers: {
@@ -1249,6 +1450,9 @@ export interface components {
   parameters: {
     OAuthClientId: string;
     OAuthRedirectUri: string;
+    OwnerParentId: number;
+    /** @description User ID of the owner, not the relationship ID. */
+    OwnerUserId: number;
     StartDateParam: string;
     EndDateParam: string;
     /** @description Zero-based page number. */
@@ -1263,7 +1467,13 @@ export interface components {
     /** @description Sort direction. */
     SortDirectionParam: "asc" | "desc";
   };
-  requestBodies: never;
+  requestBodies: {
+    AddOwner: {
+      content: {
+        "application/json": components["schemas"]["OwnerCreateRequest"];
+      };
+    };
+  };
   headers: never;
   pathItems: never;
 }
@@ -1427,6 +1637,75 @@ export interface operations {
           "application/json": components["schemas"]["ValidationErrors"];
         };
       };
+    };
+  };
+  listObjectiveOwners: {
+    parameters: {
+      query: {
+        /** @description Zero-based page number. */
+        "page[page]": components["parameters"]["PagePageParam"];
+        /** @description Number of records per page. Maximum 500. */
+        "page[limit]": components["parameters"]["PageLimitParam"];
+      };
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: components["responses"]["OwnerListResponse"];
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  addObjectiveOwner: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    requestBody: components["requestBodies"]["AddOwner"];
+    responses: {
+      200: components["responses"]["OwnerAlreadyPresent"];
+      201: components["responses"]["OwnerCreated"];
+      400: components["responses"]["InvalidOwnerPayload"];
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  removeObjectiveOwner: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+        /** @description User ID of the owner, not the relationship ID. */
+        user_id: components["parameters"]["OwnerUserId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Ownership removed */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
     };
   };
   listMetrics: {
@@ -2565,6 +2844,144 @@ export interface operations {
           "application/json": components["schemas"]["ValidationErrors"];
         };
       };
+    };
+  };
+  listMetricOwners: {
+    parameters: {
+      query: {
+        /** @description Zero-based page number. */
+        "page[page]": components["parameters"]["PagePageParam"];
+        /** @description Number of records per page. Maximum 500. */
+        "page[limit]": components["parameters"]["PageLimitParam"];
+      };
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: components["responses"]["OwnerListResponse"];
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  addMetricOwner: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    requestBody: components["requestBodies"]["AddOwner"];
+    responses: {
+      200: components["responses"]["OwnerAlreadyPresent"];
+      201: components["responses"]["OwnerCreated"];
+      400: components["responses"]["InvalidOwnerPayload"];
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  removeMetricOwner: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+        /** @description User ID of the owner, not the relationship ID. */
+        user_id: components["parameters"]["OwnerUserId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Ownership removed */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  listTacticOwners: {
+    parameters: {
+      query: {
+        /** @description Zero-based page number. */
+        "page[page]": components["parameters"]["PagePageParam"];
+        /** @description Number of records per page. Maximum 500. */
+        "page[limit]": components["parameters"]["PageLimitParam"];
+      };
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: components["responses"]["OwnerListResponse"];
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  addTacticOwner: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+      };
+      cookie?: never;
+    };
+    requestBody: components["requestBodies"]["AddOwner"];
+    responses: {
+      200: components["responses"]["OwnerAlreadyPresent"];
+      201: components["responses"]["OwnerCreated"];
+      400: components["responses"]["InvalidOwnerPayload"];
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
+    };
+  };
+  removeTacticOwner: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: components["parameters"]["OwnerParentId"];
+        /** @description User ID of the owner, not the relationship ID. */
+        user_id: components["parameters"]["OwnerUserId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Ownership removed */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components["responses"]["UnauthorizedResponse"];
+      403: components["responses"]["ForbiddenResponse"];
+      404: components["responses"]["OwnerNotFound"];
+      422: components["responses"]["OwnerValidationError"];
     };
   };
   listGroups: {
